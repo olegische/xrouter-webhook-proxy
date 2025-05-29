@@ -1,7 +1,10 @@
 """Conversation webhook handlers."""
 from typing import Dict
 
+from agent.client import AgentClient
+from api.adapters.carrot_quest_adapter import CarrotQuestWebhookAdapter
 from api.models import WebhookRequest, WebhookStatus
+from core.logger import LoggerService
 
 from .base import BaseEventHandler
 
@@ -11,6 +14,20 @@ class ConversationEventHandler(BaseEventHandler):
 
     Handles messages from chat (type=conversation).
     """
+
+    def __init__(
+        self,
+        logger: LoggerService,
+        agent_client: AgentClient,
+    ) -> None:
+        """Initialize handler.
+
+        Args:
+            logger: Logger service instance
+            agent_client: Agent service client
+        """
+        super().__init__(logger, agent_client)
+        self.adapter = CarrotQuestWebhookAdapter(logger)
 
     async def handle(self, event: WebhookRequest) -> Dict[str, str]:
         """Handle chat message webhook.
@@ -45,16 +62,29 @@ class ConversationEventHandler(BaseEventHandler):
             },
         )
 
-        # Extract message details
-        conversation_id = event.conversation.conversation
-        message_body = event.conversation.body
+        try:
+            # Convert webhook to unified message using adapter
+            message = await self.adapter.convert_to_message(event)
 
-        # Pass event to orchestrator
-        _ = self.orchestrator.process_message(
-            conversation_id=conversation_id,
-            user_id=event.user_id,
-            message=message_body,
-            context=event.model_dump(exclude_none=True),
-        )
+            if not message:
+                self.logger.debug("Webhook did not contain a user message")
+                return {"status": WebhookStatus.IGNORED}
 
-        return {"status": WebhookStatus.ACCEPTED}
+            # Send message to agent service
+            await self.agent_client.process_message(message)
+
+            return {"status": WebhookStatus.ACCEPTED}
+
+        except Exception as e:
+            self.logger.error(
+                "Failed to process conversation webhook",
+                extra={
+                    "conversation_id": event.conversation.conversation,
+                    "message_id": event.conversation.id,
+                    "user_id": event.user_id,
+                    "error": str(e),
+                },
+                exc_info=True,
+            )
+            # Return accepted to avoid webhook retries
+            return {"status": WebhookStatus.ACCEPTED}

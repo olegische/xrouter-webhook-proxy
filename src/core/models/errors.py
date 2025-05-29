@@ -6,7 +6,7 @@ various types of errors that may occur during request processing.
 from typing import Any, Dict, Optional
 
 
-class AgentError(Exception):
+class ServiceError(Exception):
     """Server error with details."""
 
     def __init__(
@@ -28,7 +28,7 @@ class AgentError(Exception):
         super().__init__(message)
 
 
-class ValidationError(AgentError):
+class ValidationError(ServiceError):
     """Validation error."""
 
     def __init__(self, message: str, field: str) -> None:

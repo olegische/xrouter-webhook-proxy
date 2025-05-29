@@ -2,8 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from dreamer.orchestrator_legacy import Orchestrator
-
+from agent.client import AgentClient
 from api.models import WebhookRequest
 from core.logger import LoggerService
 
@@ -11,15 +10,15 @@ from core.logger import LoggerService
 class BaseEventHandler(ABC):
     """Base class for webhook event handlers."""
 
-    def __init__(self, logger: LoggerService, orchestrator: Orchestrator) -> None:
+    def __init__(self, logger: LoggerService, agent_client: AgentClient) -> None:
         """Initialize handler.
 
         Args:
             logger: Logger service instance
-            orchestrator: Assistant orchestrator instance
+            agent_client: AgentClient,
         """
         self.logger = logger.get_logger(self.__class__.__name__)
-        self.orchestrator = orchestrator
+        self.agent_client = agent_client
 
     @abstractmethod
     async def handle(self, event: WebhookRequest) -> Dict[str, str]:

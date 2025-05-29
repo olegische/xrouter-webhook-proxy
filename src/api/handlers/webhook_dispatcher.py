@@ -1,31 +1,28 @@
 """Webhook event dispatcher implementation."""
 from typing import Dict
 
-from dreamer.orchestrator_legacy import Orchestrator
-
 from api.models import WebhookRequest
 from core.logger import LoggerService
 
 from .factory import HandlerFactory
 
 
-class WebhookEventDispatcher:
-    """Dispatcher for webhook events."""
+class WebhookDispatcher:
+    """Universal dispatcher for webhook events from any source."""
 
     def __init__(
         self,
         logger: LoggerService,
-        orchestrator: Orchestrator,
+        handler_factory: HandlerFactory,
     ) -> None:
         """Initialize dispatcher.
 
         Args:
             logger: Logger service instance
-            orchestrator: Assistant orchestrator instance
+            handler_factory: Handler factory instance
         """
         self.logger = logger.get_logger(__name__)
-        self.orchestrator = orchestrator
-        self.factory = HandlerFactory(logger=logger)
+        self.factory = handler_factory
 
     async def dispatch(self, event: WebhookRequest) -> Dict[str, str]:
         """Dispatch webhook event to appropriate handler.
@@ -36,5 +33,5 @@ class WebhookEventDispatcher:
         Returns:
             Response data with status
         """
-        handler = self.factory.create(event, orchestrator=self.orchestrator)
+        handler = self.factory.create(event)
         return await handler.handle(event)

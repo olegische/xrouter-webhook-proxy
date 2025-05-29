@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     ORCHESTRATOR_MODEL: str = "gpt-4-turbo-preview"  # Model for meta-orchestrator
     OPENAI_MODELS_CACHE_TTL: int = 3600  # 1 hour - cache TTL for available models list
 
+    # Agent Service
+    AGENT_SERVICE_URL: str = "http://localhost:8080"  # Base URL for agent service
+    AGENT_SERVICE_TIMEOUT: float = 30.0  # Timeout for agent service requests in seconds
+
     class Config:
         """Configuration for settings loading."""
 

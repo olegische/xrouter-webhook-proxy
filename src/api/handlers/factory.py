@@ -1,15 +1,13 @@
 """Factory for creating webhook handlers."""
-from dreamer.orchestrator_legacy import Orchestrator
-from mcp_clients.carrot_quest.models import WebhookType
-
-from api.models import WebhookRequest
+from agent.client import AgentClient
+from api.models import CarrotQuestWebhookRequest, WebhookRequest
 from core.logger import LoggerService
 from core.models.errors import ValidationError
+from core.settings import Settings
+from source.carrot_quest.models import WebhookType
 
 from .base import BaseEventHandler
 from .conversation import ConversationEventHandler
-from .default import DefaultEventHandler
-from .trigger import TriggerWebhookHandler
 
 
 class HandlerFactory:
@@ -18,22 +16,25 @@ class HandlerFactory:
     def __init__(
         self,
         logger: LoggerService,
+        agent_client: AgentClient,
+        settings: Settings,
     ) -> None:
         """Initialize factory.
 
         Args:
             logger: Logger service instance
+            agent_client: Agent service client
+            settings: Application settings
         """
         self.logger = logger
+        self.agent_client = agent_client
+        self.settings = settings
 
-    def create(
-        self, event: WebhookRequest, orchestrator: Orchestrator
-    ) -> BaseEventHandler:
+    def create(self, event: WebhookRequest) -> BaseEventHandler:
         """Create appropriate handler for webhook event.
 
         Args:
-            event: Webhook event data
-            orchestrator: Assistant orchestrator instance
+            event: Webhook event data from any supported source
 
         Returns:
             Handler instance for the event
@@ -41,44 +42,37 @@ class HandlerFactory:
         Raises:
             ValidationError: If event type is not supported or event data is invalid
         """
-        if event.type == WebhookType.TRIGGER:
-            return TriggerWebhookHandler(
-                logger=self.logger,
-                orchestrator=orchestrator,
-            )
+        # Determine source and create appropriate handler
+        if isinstance(event, CarrotQuestWebhookRequest):
+            # CarrotQuest webhook - check if it's a conversation
+            if event.type == WebhookType.CONVERSATION:
+                if not event.conversation:
+                    raise ValidationError(
+                        message="Missing conversation data",
+                        field="conversation",
+                    )
 
-        if event.type == WebhookType.CONVERSATION:
-            if not event.conversation:
+                return ConversationEventHandler(
+                    logger=self.logger,
+                    agent_client=self.agent_client,
+                )
+            else:
                 raise ValidationError(
-                    message="Missing conversation data",
-                    field="conversation",
+                    message=(
+                        f"Unsupported CarrotQuest webhook type: {event.type}. "
+                        "Only CONVERSATION webhooks are supported."
+                    ),
+                    field="type",
                 )
 
-            return ConversationEventHandler(
-                logger=self.logger,
-                orchestrator=orchestrator,
-            )
+        # Future: Add support for other webhook sources
+        # elif isinstance(event, TelegramWebhookRequest):
+        #     return ConversationEventHandler(...)
+        # elif isinstance(event, SlackWebhookRequest):
+        #     return ConversationEventHandler(...)
 
-        if event.type == WebhookType.EVENT:
-            if not event.event:
-                raise ValidationError(
-                    message="Missing event data",
-                    field="event",
-                )
-
-            if not event.event_name:
-                raise ValidationError(
-                    message="Missing event name",
-                    field="event_name",
-                )
-
-            # Use DefaultEventHandler for all event types
-            return DefaultEventHandler(
-                logger=self.logger,
-                orchestrator=orchestrator,
-            )
-
+        # Unknown webhook source
         raise ValidationError(
-            message=f"Unsupported webhook type: {event.type}",
-            field="type",
+            message=f"Unsupported webhook source: {type(event).__name__}",
+            field="source",
         )

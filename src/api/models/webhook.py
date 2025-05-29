@@ -1,9 +1,10 @@
 """Webhook models for API endpoints."""
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
-from mcp_clients.carrot_quest.models import WebhookEvent
 from pydantic import BaseModel, Field
+
+from source.carrot_quest.models import WebhookEvent
 
 
 class WebhookStatus(str, Enum):
@@ -15,8 +16,17 @@ class WebhookStatus(str, Enum):
     IGNORED = "ignored"  # Event type not supported
 
 
-class WebhookRequest(WebhookEvent):
+class CarrotQuestWebhookRequest(WebhookEvent):
     """Webhook request model extending Carrot Quest webhook event."""
+
+
+# Union type for all supported webhook requests
+# Add new webhook request types here as they are implemented
+WebhookRequest = Union[
+    CarrotQuestWebhookRequest,
+    # TelegramWebhookRequest,  # Future
+    # SlackWebhookRequest,     # Future
+]
 
 
 class WebhookResponse(BaseModel):

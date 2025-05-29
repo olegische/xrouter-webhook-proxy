@@ -3,15 +3,15 @@ import json
 from typing import Any, Dict
 
 from fastapi import Request
-from mcp_clients.carrot_quest.models import Event, User, WebhookType
 
-from api.models import WebhookRequest
+from api.models import CarrotQuestWebhookRequest
 from core.logger import LoggerService
-from core.models.errors import AgentError
+from core.models.errors import ServiceError
 from core.settings import Settings
+from source.carrot_quest.models import Event, User, WebhookType
 
 
-class WebhookParser:
+class CarrotQuestWebhookParser:
     """Service for parsing webhook request data."""
 
     def __init__(self, logger: LoggerService, settings: Settings) -> None:
@@ -86,7 +86,7 @@ class WebhookParser:
             nested_objects["event"] = Event(**json.loads(str(form_data["event"])))
         return nested_objects
 
-    async def parse_request(self, request: Request) -> WebhookRequest:
+    async def parse_request(self, request: Request) -> CarrotQuestWebhookRequest:
         """Parse webhook request data.
 
         Args:
@@ -114,7 +114,7 @@ class WebhookParser:
                         "client": request.client.host if request.client else None,
                     },
                 )
-                raise AgentError(
+                raise ServiceError(
                     code=401,
                     message="Invalid webhook token",
                     details={"field": "token"},
@@ -127,7 +127,7 @@ class WebhookParser:
             webhook_data_dict.update(self._parse_nested_objects(form_data))
 
             # Validate entire structure with Pydantic
-            return WebhookRequest(**webhook_data_dict)
+            return CarrotQuestWebhookRequest(**webhook_data_dict)
 
         except Exception as e:
             self.logger.error(
@@ -137,7 +137,7 @@ class WebhookParser:
                     "error": str(e),
                 },
             )
-            raise AgentError(
+            raise ServiceError(
                 code=400,
                 message="Invalid request payload",
                 details={"error": str(e)},
