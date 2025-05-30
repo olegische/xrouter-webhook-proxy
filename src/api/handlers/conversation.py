@@ -5,6 +5,7 @@ from agent.client import AgentClient
 from api.adapters.carrot_quest_adapter import CarrotQuestWebhookAdapter
 from api.models import WebhookRequest, WebhookStatus
 from core.logger import LoggerService
+from core.models.errors import ServiceError
 
 from .base import BaseEventHandler
 
@@ -73,6 +74,37 @@ class ConversationEventHandler(BaseEventHandler):
             # Send message to agent service
             await self.agent_client.process_message(message)
 
+            return {"status": WebhookStatus.ACCEPTED}
+
+        except ServiceError as e:
+            # Handle agent service errors separately
+            if e.code == 503 or e.details.get("is_service_down", False):
+                # Service is down - log as warning, not error
+                self.logger.warning(
+                    "Agent service unavailable - webhook processed but not forwarded",
+                    extra={
+                        "conversation_id": event.conversation.conversation,
+                        "message_id": event.conversation.id,
+                        "user_id": event.user_id,
+                        "agent_service_url": self.agent_client.base_url,
+                        "error_type": e.details.get("error_type", "unknown"),
+                    },
+                )
+            else:
+                # Other service errors - log as error with full details
+                self.logger.error(
+                    "Agent service error processing webhook",
+                    extra={
+                        "conversation_id": event.conversation.conversation,
+                        "message_id": event.conversation.id,
+                        "user_id": event.user_id,
+                        "error": str(e),
+                        "error_code": e.code,
+                        "error_details": e.details,
+                    },
+                    exc_info=True,
+                )
+            # Return accepted to avoid webhook retries
             return {"status": WebhookStatus.ACCEPTED}
 
         except Exception as e:

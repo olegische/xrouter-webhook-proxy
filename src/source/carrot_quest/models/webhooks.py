@@ -1,6 +1,6 @@
 """Webhook models for Carrot Quest API."""
 from enum import Enum
-from typing import Dict, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -40,7 +40,7 @@ class MessageDeliveryType(str, Enum):
     EMAIL = "email"
 
 
-class ConversationEventData(Dict):
+class ConversationEventData(BaseModel):
     """Conversation event data model.
 
     Event data is a dictionary with fields prefixed with $, like:
@@ -51,6 +51,31 @@ class ConversationEventData(Dict):
     - $message_name: Message name (for auto messages)
     - $type: Message delivery type
     """
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
+    }
+
+    # Define common fields with Optional type
+    body: Optional[str] = Field(
+        None, alias="$body", description="Message text (first 255 characters)"
+    )
+    conversation_id: Optional[str] = Field(
+        None, alias="$conversation_id", description="Dialog ID"
+    )
+    message_id: Optional[str] = Field(
+        None, alias="$message_id", description="Message ID"
+    )
+    message_type: Optional[str] = Field(
+        None, alias="$message_type", description="Message type (auto/manual)"
+    )
+    message_name: Optional[str] = Field(
+        None, alias="$message_name", description="Message name (for auto messages)"
+    )
+    type: Optional[str] = Field(
+        None, alias="$type", description="Message delivery type"
+    )
 
 
 class WebhookEvent(BaseModel):

@@ -1,4 +1,5 @@
 """Agent service client."""
+from datetime import datetime
 from typing import Any, Dict, Optional, cast
 
 import httpx
@@ -8,6 +9,25 @@ from api.models.message import Message
 from core.logger import LoggerService
 from core.models.errors import ServiceError
 from core.settings import Settings
+
+
+def _serialize_datetime_objects(data: Any) -> Any:
+    """Recursively convert datetime objects to ISO strings for JSON serialization.
+
+    Args:
+        data: Data structure that may contain datetime objects
+
+    Returns:
+        Data structure with datetime objects converted to ISO strings
+    """
+    if isinstance(data, datetime):
+        return data.isoformat()
+    elif isinstance(data, dict):
+        return {key: _serialize_datetime_objects(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [_serialize_datetime_objects(item) for item in data]
+    else:
+        return data
 
 
 class AgentClient:
@@ -75,6 +95,20 @@ class AgentClient:
             status_code = 500
             response_data = None
 
+            # Check if it's a connection error
+            if isinstance(e, (httpx.ConnectError, httpx.TimeoutException)):
+                # Connection errors - service is likely down
+                raise ServiceError(
+                    code=503,  # Service Unavailable
+                    message=f"Agent service unavailable: {error_msg}",
+                    details={
+                        "endpoint": endpoint,
+                        "method": method,
+                        "error_type": "connection_error",
+                        "is_service_down": True,
+                    },
+                )
+
             # Extract response data if available
             if hasattr(e, "response") and e.response is not None:
                 status_code = e.response.status_code
@@ -93,6 +127,7 @@ class AgentClient:
                 "endpoint": endpoint,
                 "method": method,
                 "status_code": status_code,
+                "error_type": "http_error",
             }
 
             if response_data:
@@ -130,10 +165,15 @@ class AgentClient:
         )
 
         try:
+            # Convert message to dict and handle datetime serialization
+            message_data = message.model_dump(exclude_none=True)
+            # Convert any datetime objects to ISO strings for JSON serialization
+            serialized_data = _serialize_datetime_objects(message_data)
+
             response_data = await self._make_request(
                 "POST",
                 "/message",
-                json_data=message.model_dump(exclude_none=True),
+                json_data=serialized_data,
             )
 
             self.logger.info(

@@ -10,15 +10,17 @@ class Settings(BaseSettings):
 
     # Environment
     ENVIRONMENT: str = "development"
-    DEBUG: bool = False
 
     # Project
-    PROJECT_NAME: str = "xrouter-server"
+    PROJECT_NAME: str = "xrouter-webhook-proxy"
     VERSION: str
+
+    # Registry configuration
+    REGISTRY_ID: str = ""
 
     # Host
     HOST: str = "0.0.0.0"
-    PORT: int = 8900
+    PORT: int = 8000
 
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
@@ -33,18 +35,6 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    # Cache
-    CACHE_TTL: int = 60 * 60  # 1 hour
-    CACHE_PREFIX: str = "cache"
-    API_KEY_CACHE_TTL: int = 900  # 15 minutes - specific TTL for API key caching
-
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"  # Local Redis instance in container
-    REDIS_PREFIX: str = "panda-ai"
-    REDIS_PASSWORD: str = (
-        ""  # Redis password for authentication when ENABLE_AUTH is True
-    )
-
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"  # Доступные форматы: json, text, structured
@@ -54,12 +44,6 @@ class Settings(BaseSettings):
     CARROT_QUEST_WEBHOOK_TOKEN: str = (
         ""  # Token from Carrot Quest admin panel for webhook verification
     )
-
-    # OpenAI
-    OPENAI_API_KEY: str = ""  # OpenAI API key
-    OPENAI_ORG_ID: str = ""  # OpenAI organization ID
-    ORCHESTRATOR_MODEL: str = "gpt-4-turbo-preview"  # Model for meta-orchestrator
-    OPENAI_MODELS_CACHE_TTL: int = 3600  # 1 hour - cache TTL for available models list
 
     # Agent Service
     AGENT_SERVICE_URL: str = "http://localhost:8080"  # Base URL for agent service

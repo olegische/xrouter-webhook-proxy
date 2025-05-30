@@ -9,6 +9,7 @@ from core.logger import LoggerService
 from core.models.errors import ServiceError
 from core.settings import Settings
 from source.carrot_quest.models import Event, User, WebhookType
+from source.carrot_quest.models.objects import ConversationPart
 
 
 class CarrotQuestWebhookParser:
@@ -84,6 +85,10 @@ class CarrotQuestWebhookParser:
         nested_objects = {}
         if "event" in form_data:
             nested_objects["event"] = Event(**json.loads(str(form_data["event"])))
+        if "conversation" in form_data:
+            nested_objects["conversation"] = ConversationPart(
+                **json.loads(str(form_data["conversation"]))
+            )
         return nested_objects
 
     async def parse_request(self, request: Request) -> CarrotQuestWebhookRequest:
@@ -96,7 +101,7 @@ class CarrotQuestWebhookParser:
             Validated webhook request data
 
         Raises:
-            AgentError: If request data is invalid
+            ServiceError: If request data is invalid
         """
         try:
             # Parse form data

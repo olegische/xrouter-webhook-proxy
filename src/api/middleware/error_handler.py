@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from core.logger import LoggerService
-from core.models.errors import AgentError
+from core.models.errors import ServiceError
 from core.settings import Settings
 
 
@@ -133,7 +133,7 @@ class ErrorHandlerMiddleware:
             await response(scope, receive, send)
             return
 
-        except AgentError as e:
+        except ServiceError as e:
             # Log provider error with full context
             self.logger.error(
                 "Provider error",
