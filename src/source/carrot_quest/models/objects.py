@@ -464,7 +464,7 @@ class ConversationPart(BaseModel):
     inbound_email: Optional[int] = Field(
         None, description="ID of original email for email integration messages"
     )
-    random_id: Optional[str] = Field(
+    random_id: Optional[Union[str, int]] = Field(
         None, description="Frontend message correlation ID"
     )
     attachments: Optional[List[Attachment]] = Field(

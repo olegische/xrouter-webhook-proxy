@@ -88,8 +88,8 @@ class WebhookEvent(BaseModel):
 
     type: WebhookType = Field(..., description="Webhook event type")
     token: str = Field(..., description="Webhook verification token")
-    user: User = Field(..., description="User associated with the event")
-    user_id: str = Field(..., description="User ID")
+    user: Optional[User] = Field(None, description="User associated with the event")
+    user_id: Optional[str] = Field(None, description="User ID")
 
     # Fields for event type webhooks
     event_name: Optional[ConversationEventType] = Field(

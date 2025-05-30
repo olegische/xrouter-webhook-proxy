@@ -6,6 +6,7 @@ from api.models.message import InputMessage, Message, MessageRole, MessageSource
 from api.models.webhook import CarrotQuestWebhookRequest
 from core.logger import LoggerService
 from source.carrot_quest.models import DirectionType, WebhookType
+from source.carrot_quest.models.objects import ConversationPart, ConversationPartType
 
 
 class CarrotQuestWebhookAdapter:
@@ -18,6 +19,42 @@ class CarrotQuestWebhookAdapter:
             logger: Logger service instance
         """
         self.logger = logger.get_logger(self.__class__.__name__)
+
+    def _determine_role_and_assistant_id(
+        self, conversation: ConversationPart
+    ) -> tuple[MessageRole, Optional[str]]:
+        """Determine message role and assistant ID from conversation data.
+
+        Args:
+            conversation: Conversation part object
+
+        Returns:
+            Tuple of (role, assistant_id)
+        """
+        role = MessageRole.USER
+        assistant_id = None
+
+        # Check conversation type first (more reliable)
+        if (
+            hasattr(conversation, "type")
+            and conversation.type == ConversationPartType.REPLY_ADMIN
+        ):
+            role = MessageRole.ASSISTANT
+            # Extract assistant ID from 'from' field for admin messages
+            if hasattr(conversation, "from_") and conversation.from_:
+                if hasattr(conversation.from_, "id"):
+                    assistant_id = str(conversation.from_.id)
+                elif isinstance(conversation.from_, (int, str)):
+                    assistant_id = str(conversation.from_)
+
+        # Fallback to direction check if type is not available
+        elif (
+            hasattr(conversation, "direction")
+            and conversation.direction == DirectionType.ADMIN_TO_USER
+        ):
+            role = MessageRole.ASSISTANT
+
+        return role, assistant_id
 
     async def convert_to_message(
         self, webhook_request: CarrotQuestWebhookRequest
@@ -52,17 +89,17 @@ class CarrotQuestWebhookAdapter:
             # Extract message details from parsed objects
             message_id = str(conversation.id)
             thread_id = str(conversation.conversation)
-            user_id = str(webhook_request.user_id)
+            # Get user_id from conversation object, not from webhook root
+            user_id = (
+                str(conversation.user)
+                if hasattr(conversation, "user") and conversation.user
+                else None
+            )
             content = str(conversation.body)
             timestamp = datetime.fromtimestamp(conversation.created)
 
-            # Determine message role based on direction
-            role = MessageRole.USER
-            if (
-                hasattr(conversation, "direction")
-                and conversation.direction == DirectionType.ADMIN_TO_USER
-            ):
-                role = MessageRole.ASSISTANT
+            # Determine message role and assistant ID
+            role, assistant_id = self._determine_role_and_assistant_id(conversation)
 
             # Extract channel information
             channel_type = None
@@ -90,6 +127,7 @@ class CarrotQuestWebhookAdapter:
                 message_id=message_id,
                 thread_id=thread_id,
                 user_id=user_id,
+                assistant_id=assistant_id,
                 source=MessageSource.CARROT_QUEST,
                 source_message_id=message_id,
                 timestamp=timestamp,

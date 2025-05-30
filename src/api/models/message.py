@@ -56,7 +56,7 @@ class InputFile(BaseModel):
 
 
 class InputMessage(BaseModel):
-    """A message input to the model with a role indicating instruction following hierarchy.
+    """A message input to the model.
 
     This represents a message with role-based hierarchy for instruction following.
     """

@@ -48,8 +48,6 @@ class CarrotQuestWebhookParser:
         return {
             "type": WebhookType(str(form_data["type"])),
             "token": str(form_data["token"]),
-            "user_id": str(form_data["user_id"]),
-            "user": User(**json.loads(str(form_data["user"]))),
         }
 
     def _parse_optional_fields(self, form_data: dict) -> Dict[str, Any]:
@@ -68,9 +66,15 @@ class CarrotQuestWebhookParser:
             "message_id",
             "sending_id",
             "message_name",
+            "user_id",
         ]:
             if field in form_data:
                 optional_fields[field] = str(form_data[field])
+
+        # Parse user object if present
+        if "user" in form_data:
+            optional_fields["user"] = User(**json.loads(str(form_data["user"])))
+
         return optional_fields
 
     def _parse_nested_objects(self, form_data: dict) -> Dict[str, Any]:
