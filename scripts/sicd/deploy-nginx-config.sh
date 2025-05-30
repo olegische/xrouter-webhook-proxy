@@ -41,7 +41,7 @@ ssh -t -t -i "$ssh_key_path" "$remote_host" << 'EOF'
 
     # Replace proxy_pass with container IPs
     sed -i "s|http://xrouter-web:3000|http://$WEB_CONTAINER_IP:3000|g" nginx.conf
-    sed -i "s|http://xrouter-webhook-proxy:8000|http://$WEBHOOK_CONTAINER_IP:8000|g" nginx.conf
+    sed -i "s|http://xrouter-webhook-proxy:8220|http://$WEBHOOK_CONTAINER_IP:8220|g" nginx.conf
 
     # Deploy updated configuration
     sudo cp nginx.conf /etc/nginx/sites-available/xrouter-web && \

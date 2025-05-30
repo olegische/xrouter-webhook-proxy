@@ -107,6 +107,17 @@ class CarrotQuestWebhookParser:
             # Parse form data
             form_data = await request.form()
 
+            # Log form data for debugging
+            form_dict = {key: str(value) for key, value in form_data.items()}
+            self.logger.info(
+                "Webhook form data received",
+                extra={
+                    "request_id": getattr(request.state, "request_id", None),
+                    "form_keys": list(form_dict.keys()),
+                    "form_data": form_dict,
+                },
+            )
+
             # Parse and validate required fields
             required_fields = self._parse_required_fields(form_data)
 

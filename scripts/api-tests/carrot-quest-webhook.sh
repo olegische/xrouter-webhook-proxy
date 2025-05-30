@@ -3,7 +3,8 @@
 # Default values
 # Use WEBHOOK_HOST if set, otherwise default to localhost:8220
 if [ -z "$WEBHOOK_HOST" ]; then
-    WEBHOOK_HOST="http://localhost:8220"
+    # WEBHOOK_HOST="http://localhost:8220"
+    WEBHOOK_HOST="https://rorotools.com"
 fi
 HOST="$WEBHOOK_HOST"
 

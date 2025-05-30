@@ -1,0 +1,18 @@
+services:
+  xrouter-webhook-proxy:
+    container_name: ${PROJECT_NAME}
+    image: cr.yandex/${REGISTRY_ID}/${PROJECT_NAME}:${VERSION}
+    platform: linux/amd64
+    ports:
+      - "${PORT:-8220}:${PORT:-8220}"
+    env_file:
+      - /opt/${PROJECT_NAME}/.env.prod
+    command: >
+      uvicorn src.main:get_app --host 0.0.0.0 --port ${PORT:-8220} --reload --factory
+    restart: unless-stopped
+    networks:
+      - xrouter_web_network
+
+networks:
+  xrouter_web_network:
+    external: true
