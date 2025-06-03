@@ -19,8 +19,8 @@ set +a
 # Read secrets
 remote_host=$(read_first_line_of_file "secrets/.ssh-host")
 ssh_key_path=$(read_first_line_of_file "secrets/.ssh-privkey-path")
-docker_token=$(read_first_line_of_file "secrets/.docker-oauth-token")
-docker_username=$(read_first_line_of_file "secrets/.docker-login-username")
+docker_token=$(read_first_line_of_file "secrets/.docker-oauth-token-yc")
+docker_username=$(read_first_line_of_file "secrets/.docker-login-username-yc")
 
 echo "Deploying to $remote_host..."
 
