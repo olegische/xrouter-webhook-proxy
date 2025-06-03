@@ -78,12 +78,14 @@ def get_handler_factory(request: Request) -> HandlerFactory:
 def get_webhook_dispatcher(
     logger: Annotated[LoggerService, Depends(get_logger)],
     handler_factory: Annotated[HandlerFactory, Depends(get_handler_factory)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> WebhookDispatcher:
     """Create webhook dispatcher instance for request.
 
     Args:
         logger: Logger service instance
         handler_factory: Handler factory instance
+        settings: Settings instance
 
     Returns:
         Webhook dispatcher instance
@@ -91,4 +93,5 @@ def get_webhook_dispatcher(
     return WebhookDispatcher(
         logger=logger,
         handler_factory=handler_factory,
+        settings=settings,
     )
