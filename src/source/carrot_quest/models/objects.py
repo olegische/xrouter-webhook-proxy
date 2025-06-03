@@ -429,10 +429,16 @@ class ConversationPart(BaseModel):
         ...,
         description="Message sending method",
     )
-    from_: Optional[Union[int, Admin, MessageSender]] = Field(
+    from_: Optional[Union[int, str, Admin, MessageSender]] = Field(
         None,
         alias="from",
-        description="Message sender (user ID, Admin or MessageSender object)",
+        description=(
+            "Message sender (user ID as int or str, Admin or MessageSender object)"
+        ),
+    )
+    user: Optional[str] = Field(
+        None,
+        description="User ID associated with this message (from webhook data)",
     )
     read: Optional[bool] = Field(None, description="Whether message has been read")
     first: Optional[bool] = Field(

@@ -49,9 +49,15 @@ class WebhookDispatcher:
                 if (
                     hasattr(event.conversation, "type")
                     and event.conversation.type == ConversationPartType.REPLY_USER
-                    and hasattr(event.conversation, "user")
                 ):
-                    return str(event.conversation.user)
+                    # First try to get from 'from' field for user replies
+                    if hasattr(event.conversation, "from_"):
+                        return str(event.conversation.from_)
+                    # Fallback to 'user' field if available
+                    elif (
+                        hasattr(event.conversation, "user") and event.conversation.user
+                    ):
+                        return str(event.conversation.user)
 
         # For other events, user ID is in the top-level field
         elif hasattr(event, "user_id") and event.user_id:

@@ -90,11 +90,15 @@ class CarrotQuestWebhookAdapter:
             message_id = str(conversation.id)
             thread_id = str(conversation.conversation)
             # Get user_id from conversation object, not from webhook root
-            user_id = (
-                str(conversation.user)
-                if hasattr(conversation, "user") and conversation.user
-                else None
-            )
+            # For user replies, prefer 'from' field over 'user' field
+            user_id = None
+            if (
+                conversation.type == ConversationPartType.REPLY_USER
+                and conversation.from_
+            ):
+                user_id = str(conversation.from_)
+            elif conversation.user:
+                user_id = str(conversation.user)
             content = str(conversation.body)
             timestamp = datetime.fromtimestamp(conversation.created)
 
