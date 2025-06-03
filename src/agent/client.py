@@ -5,10 +5,11 @@ from typing import Any, Dict, Optional, cast
 import httpx
 from pydantic import ValidationError
 
-from api.models.message import Message
 from core.logger import LoggerService
 from core.models.errors import ServiceError
 from core.settings import Settings
+
+from .models import Message
 
 
 def _serialize_datetime_objects(data: Any) -> Any:

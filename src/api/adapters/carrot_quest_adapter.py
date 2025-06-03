@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from api.models.message import InputMessage, Message, MessageRole, MessageSource
+from agent.models import InputMessage, Message, MessageRole, MessageSource
 from api.models.webhook import CarrotQuestWebhookRequest
 from core.logger import LoggerService
 from source.carrot_quest.models import DirectionType, WebhookType

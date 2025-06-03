@@ -1,6 +1,5 @@
 """API models."""
 
-from .message import Message, MessageSource
 from .webhook import (
     CarrotQuestWebhookRequest,
     WebhookRequest,
@@ -13,6 +12,4 @@ __all__ = [
     "WebhookRequest",
     "WebhookResponse",
     "WebhookStatus",
-    "Message",
-    "MessageSource",
 ]
