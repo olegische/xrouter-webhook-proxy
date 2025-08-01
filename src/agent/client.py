@@ -173,7 +173,7 @@ class AgentClient:
 
             response_data = await self._make_request(
                 "POST",
-                "/message",
+                "/api/v1/message",
                 json_data=serialized_data,
             )
 

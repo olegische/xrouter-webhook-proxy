@@ -3,14 +3,14 @@
 # Default values
 # Use WEBHOOK_HOST if set, otherwise default to localhost:8220
 if [ -z "$WEBHOOK_HOST" ]; then
-    WEBHOOK_HOST="http://localhost:8220"
+    WEBHOOK_HOST="https://rorotools.com"
 fi
 HOST="$WEBHOOK_HOST"
 
 # Get token from .env if not provided
 if [ -z "$WEBHOOK_TOKEN" ]; then
     # Try to extract from .env file
-    WEBHOOK_TOKEN=$(grep CARROT_QUEST_WEBHOOK_TOKEN .env | cut -d '"' -f 2)
+    WEBHOOK_TOKEN=$(grep CARROT_QUEST_WEBHOOK_TOKEN .env.prod | cut -d '"' -f 2)
     if [ -z "$WEBHOOK_TOKEN" ]; then
         WEBHOOK_TOKEN="service-token"  # Default from .env
     fi

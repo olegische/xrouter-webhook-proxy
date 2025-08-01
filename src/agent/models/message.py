@@ -125,13 +125,3 @@ class Message(BaseModel):
     channel_type: Optional[str] = Field(
         None, description="Channel type (e.g., 'popup_chat', 'email')"
     )
-
-
-class WebhookGatewayRequest(BaseModel):
-    """Request to webhook gateway containing raw webhook data."""
-
-    source: MessageSource = Field(..., description="Source system identifier")
-    raw_data: Dict[str, Any] = Field(
-        ..., description="Raw webhook data from source system"
-    )
-    headers: Optional[Dict[str, str]] = Field(None, description="Request headers")
